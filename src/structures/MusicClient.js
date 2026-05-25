@@ -13,14 +13,17 @@ const config = require("../config.js");
 
 class MusicBot extends Client {
   constructor() {
+    const clusterInfo = resolveClusterInfo();
     super({
       intents: resolveIntents(config.intents),
       properties: {
         browser: config.app?.browser,
       },
       allowedMentions: config.allowedMentions,
-      shards: getInfo().SHARD_LIST,
-      shardCount: getInfo().TOTAL_SHARDS,
+      ...(clusterInfo ? {
+        shards: clusterInfo.SHARD_LIST,
+        shardCount: clusterInfo.TOTAL_SHARDS,
+      } : {}),
     });
 
     this.commands = new Collection();
@@ -39,7 +42,10 @@ class MusicBot extends Client {
     this.logger = require("../utils/logger.js");
     this.emoji = require("../utils/emoji.json");
     installClientReadyAlias(this);
-    this.cluster = new ClusterClient(this);
+    this.cluster = clusterInfo ? new ClusterClient(this) : null;
+    if (!this.cluster) {
+      this.logger.log("[Cluster] Running without ClusterManager. Use npm start/node Shard.js for production sharding.", "warn");
+    }
     if (!this.token) this.token = this.config.token;
     this.manager = null;
     this.spamMap = new Map();
@@ -99,6 +105,14 @@ class MusicBot extends Client {
   async connect() {
     this.emoji = await loadEmojiLibrary(this);
     return super.login(this.token);
+  }
+}
+
+function resolveClusterInfo() {
+  try {
+    return getInfo();
+  } catch {
+    return null;
   }
 }
 

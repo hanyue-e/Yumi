@@ -73,7 +73,11 @@ module.exports = {
         }));
 
         console.log("Restarting all shards...");
-        await client.cluster.respawnAll(); 
+        if (client.cluster?.respawnAll) {
+          await client.cluster.respawnAll();
+        } else {
+          process.exit(0);
+        }
       } else if (interaction.customId === "cancel") {
         collector.stop();
         await msg.edit(v2({

@@ -8,7 +8,14 @@ module.exports = (client) => {
   fs.readdirSync(clientEventsPath)
     .filter((file) => file.endsWith(".js"))
     .forEach((file) => {
-    const event = require(path.join(clientEventsPath, file));
+    let event;
+    try {
+      event = require(path.join(clientEventsPath, file));
+    } catch (error) {
+      client.logger.log(`Skipped client event with load error: ${file} (${error.message})`, "warn");
+      return;
+    }
+
     if (!event?.name || typeof event.run !== "function") {
       client.logger.log(`Skipped invalid client event: ${file}`, "warn");
       return;

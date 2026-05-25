@@ -5,6 +5,10 @@ const Schema = mongoose.Schema({
     type: String,
     required: true,
   },
+  id: {
+    type: String,
+    required: true,
+  },
   data: {
     name: String,
     region: String,
@@ -66,10 +70,15 @@ const Model = mongoose.model("guild", Schema);
 
 module.exports = {
   getSettings: async (guild) => {
-    let guildData = await Model.findOne({ _id: guild.id });
+    if (!guild?.id) {
+      throw new Error("Guild ID is undefined");
+    }
+
+    let guildData = await Model.findOne({ $or: [{ _id: guild.id }, { id: guild.id }] });
     if (!guildData) {
       guildData = new Model({
         _id: guild.id,
+        id: guild.id,
         data: {
           name: guild.name,
           region: guild.preferredLocale,
@@ -80,10 +89,14 @@ module.exports = {
           joinedAt: guild.joinedAt,
         },
       });
-      if (!guild.id) {
-        throw new Error("Guild ID is undefined");
-      }
       await guildData.save();
+    } else {
+      let changed = false;
+      if (guildData.id !== guild.id) {
+        guildData.id = guild.id;
+        changed = true;
+      }
+      if (changed) await guildData.save();
     }
     return guildData;
   },

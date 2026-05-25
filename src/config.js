@@ -48,7 +48,9 @@ const config = {
   footerText: env("FOOTER_TEXT"),
   emojiLibrary: {
     url: env("EMOJI_LIBRARY_URL"),
+    fallbackUrls: envList("EMOJI_LIBRARY_FALLBACK_URLS"),
     timeoutMs: envNumber("EMOJI_LIBRARY_TIMEOUT_MS"),
+    useApplicationEmojis: envBool("EMOJI_LIBRARY_USE_APPLICATION", "true"),
   },
 
   dokdo: {

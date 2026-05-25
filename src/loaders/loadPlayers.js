@@ -6,7 +6,14 @@ module.exports = (client) => {
   let totalEvents = 0;
 
   fs.readdirSync(playerEventsPath).filter((file) => file.endsWith(".js")).forEach((file) => {
-    const event = require(path.join(playerEventsPath, file));
+    let event;
+    try {
+      event = require(path.join(playerEventsPath, file));
+    } catch (error) {
+      client.logger.log(`Skipped player event with load error: ${file} (${error.message})`, "warn");
+      return;
+    }
+
     if (!event?.name || typeof event.run !== "function") {
       client.logger.log(`Skipped invalid player event: ${file}`, "warn");
       return;

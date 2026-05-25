@@ -11,7 +11,14 @@ module.exports = (client) => {
       .readdirSync(path.join(commandsPath, dir))
       .filter((file) => file.endsWith(".js"));
     for (const file of commandFiles) {
-      const command = require(path.join(commandsPath, dir, file));
+      let command;
+      try {
+        command = require(path.join(commandsPath, dir, file));
+      } catch (error) {
+        client.logger.log(`Skipped command with load error: ${dir}/${file} (${error.message})`, "warn");
+        continue;
+      }
+
       if (!command?.name || typeof command.execute !== "function") {
         client.logger.log(`Skipped invalid command: ${dir}/${file}`, "warn");
         continue;

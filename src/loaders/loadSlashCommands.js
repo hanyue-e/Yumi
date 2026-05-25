@@ -13,7 +13,14 @@ module.exports = (client) => {
       .readdirSync(path.join(slashCommandsPath, dir))
       .filter((file) => file.endsWith(".js"));
     for (const file of slashCommandFiles) {
-      const slashCommand = require(path.join(slashCommandsPath, dir, file));
+      let slashCommand;
+      try {
+        slashCommand = require(path.join(slashCommandsPath, dir, file));
+      } catch (error) {
+        client.logger.log(`Skipped slash command with load error: ${dir}/${file} (${error.message})`, "warn");
+        continue;
+      }
+
       if (
         !slashCommand.name ||
         !slashCommand.description ||
